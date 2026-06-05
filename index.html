@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dumb Ways to Die - Master Jason Edition</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB, #E0FFFF);
+            color: #333;
+            text-align: center;
+            overflow: hidden;
+        }
+        header {
+            background: #FF4500;
+            color: white;
+            padding: 20px;
+            font-size: 2em;
+        }
+        #game {
+            margin: 20px auto;
+            border: 5px solid #FF4500;
+            background: white;
+        }
+        button {
+            background: #FF4500;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.5em;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 10px;
+        }
+        button:hover {
+            background: #FF0000;
+        }
+        #score {
+            font-size: 1.5em;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>Dumb Ways to Die - The Game!</header>
+    <p>Set in the land of Dumbville, avoid the dumb deaths!</p>
+    <canvas id="game" width="600" height="400"></canvas>
+    <div id="score">Score: 0</div>
+    <button onclick="startGame()">Start / Restart</button>
+    <button onclick="playSong()">Play Dumb Song</button>
+
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        let score = 0;
+        let gameRunning = false;
+        let player = { x: 280, y: 300, width: 40, height: 40 };
+        let obstacles = [];
+        let animationFrame;
+
+        function drawPlayer() {
+            ctx.fillStyle = '#00FF00';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            // Dumb face
+            ctx.fillStyle = '#000';
+            ctx.fillRect(player.x + 10, player.y + 10, 8, 8);
+            ctx.fillRect(player.x + 22, player.y + 10, 8, 8);
+        }
+
+        function drawObstacles() {
+            ctx.fillStyle = '#FF0000';
+            obstacles.forEach(obs => {
+                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+            });
+        }
+
+        function update() {
+            if (!gameRunning) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Background elements
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Ground
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(0, 350, canvas.width, 50);
+
+            drawPlayer();
+            drawObstacles();
+
+            // Move obstacles
+            obstacles.forEach((obs, index) => {
+                obs.y += 3;
+                if (obs.y > canvas.height) {
+                    obstacles.splice(index, 1);
+                    score += 10;
+                }
+            });
+
+            // Collision
+            obstacles.forEach(obs => {
+                if (
+                    player.x < obs.x + obs.width &&
+                    player.x + player.width > obs.x &&
+                    player.y < obs.y + obs.height &&
+                    player.y + player.height > obs.y
+                ) {
+                    endGame();
+                }
+            });
+
+            // Add new obstacles
+            if (Math.random() < 0.05) {
+                obstacles.push({
+                    x: Math.random() * (canvas.width - 50),
+                    y: 0,
+                    width: 40 + Math.random() * 30,
+                    height: 40
+                });
+            }
+
+            document.getElementById('score').textContent = `Score: ${score}`;
+            animationFrame = requestAnimationFrame(update);
+        }
+
+        function startGame() {
+            gameRunning = true;
+            score = 0;
+            obstacles = [];
+            update();
+        }
+
+        function endGame() {
+            gameRunning = false;
+            cancelAnimationFrame(animationFrame);
+            alert(`Game Over! Final Score: ${score}. You died in a dumb way!`);
+        }
+
+        // Mouse control
+        canvas.addEventListener('mousemove', (e) => {
+            if (gameRunning) {
+                const rect = canvas.getBoundingClientRect();
+                player.x = e.clientX - rect.left - player.width / 2;
+                if (player.x < 0) player.x = 0;
+                if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+            }
+        });
+
+        function playSong() {
+            alert("🎵 Dumb ways to die, so many dumb ways to die! 🎵 Avoid the dumb stuff!");
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') player.x -= 20;
+            if (e.key === 'ArrowRight') player.x += 20;
+            if (player.x < 0) player.x = 0;
+            if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+        });
+
+        // Initial draw
+        ctx.fillStyle = '#87CEEB';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawPlayer();
+    </script>
+</body>
+</html>
